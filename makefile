@@ -4,4 +4,7 @@ run:
 	./aes.out
 clean:
 	rm *.out
+do:
+	make build
+	make run
 
