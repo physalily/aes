@@ -58,11 +58,32 @@ int* InvMixColumns(int* text)
 int* InvShiftRows(int* text)
 {
     int result[16] = {0};
+    // first row shifting...
+    for (int i = 0; i < 4; i++)
+        result[i] = text[i];
+    // second row shifting...
+    result[7] = text[4];
+    for (int i = 0; i < 3; i++)
+        result[4+i] = text[5+i];
+    // therad row shifting...
+    result[8]  = text[10];
+    result[9]  = text[11];
+    result[10] = text[8];
+    result[11] = text[9];
+    // fours row shifting...
+    for (int i = 0; i < 3; i++)
+        result[12+i] = text[13+i];
+    result[15] = text[12];
     return result;
 }
 
 int* InvSubBytes(int* text, int* sbox)
 {
     int result[16] = {0};
+    for (int i = 0; i < 16; i++) {
+        int row_index = text[i] & 0x0f;
+        int coloum_index = text[i] >> 4;
+        result[i] = sbox[row_index][coloum_index];
+    }
     return result;
 }
