@@ -9,15 +9,28 @@ void InvSubBytes(int*, int*);
 int main(char argc, char** argv)
 {
     // variables
+    int round_value = 2;
     int plain_text[16] = {
         0xca, 0xfd, 0x23, 0x1a, 0x20, 0x4d, 0x38, 0x17, 0x46, 0xd3, 0xf4, 0x1f, 0x86, 0x55, 0xbb, 0x76
     };
     int crypt_key[16] = {
         0xb7, 0xc7, 0x2c, 0xed, 0x43, 0x9d, 0x44, 0x88, 0xc2, 0x56, 0x74, 0xb9, 0xce, 0x54, 0xab, 0xc0
     };
+    int result_text[16] = {0};
+    int output_text[16] = {0};
 
     // function call
     printf("hello aes\n");
+    AddRoundKey(result_text, plain_text, crypt_key);
+    for (int i = 0; i < round_value-1; i++) {
+        InvSubBytes(output_text, result_text);
+        InvShiftRows(result_text, output_text);
+        InvMixColumns(output_text, result_text);
+        AddRoundKey(result_text, output_text, crypt_key);
+    }
+    InvSubBytes(output_text, result_text);
+    InvShiftRows(result_text, output_text);
+    AddRoundKey(output_text, result_text, crypt_key);
 
     return 0;
 }
