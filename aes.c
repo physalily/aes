@@ -44,7 +44,28 @@ void AddRoundKey(int* result, int* text, int* key)
 
 void InvMixColumns(int* result, int* text)
 {
-
+    result[0] = text[0] << 1;
+    result[1] = text[1] << 1 + text[1];
+    result[2] = text[2];
+    result[3] = text[3];
+    result[4] = text[4];
+    result[5] = text[5] << 1;
+    result[6] = text[6] << 1 + text[6];
+    result[7] = text[7];
+    result[8] = text[8];
+    result[9] = text[9];
+    result[10] = text[10] << 1;
+    result[11] = text[11] << 1;
+    result[12] = text[12] << 1 + text[12];
+    result[13] = text[13];
+    result[14] = text[14];
+    result[15] = text[15] << 1 + text[15];
+    for (int i = 0; i < 16; i++) {
+        if (result[i] >> 8 > 1) {
+            result[i] = result[i] & 0xff;
+            result[i] = result[i] & 0x08 + result[i] & 0x04 + result[i] & 0x01;
+        }
+    }
 }
 
 void InvShiftRows(int* result, int* text)
