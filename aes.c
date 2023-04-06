@@ -32,6 +32,18 @@ int main(char argc, char** argv)
     InvShiftRows(result_text, output_text);
     AddRoundKey(output_text, result_text, crypt_key);
 
+    // show the result
+    printf("input value : ");
+    for (int i = 0; i < 16; i++) {
+        printf("%x ", plain_text[i]);
+    }
+    printf("\n");
+    printf("result value: ");
+    for (int i = 0; i < 16; i++) {
+        printf("%x ", output_text[i]);
+    }
+    printf("\nend\n");
+
     return 0;
 }
 
