@@ -1,40 +1,61 @@
 #include <stdio.h>
 
 // prototype declare
-void AddRoundKey(int*, int*, int*);
-void InvMixColumns(int*, int*);
-void InvShiftRows(int*, int*);
-void InvSubBytes(int*, int*);
+void AddRoundKey(int*, int*);
+void InvMixColumns(int*);
+void InvShiftRows(int*);
+void InvSubBytes(int*);
 
 int main(char argc, char** argv)
 {
     // variables
-    int round_value = 10;
+    int round_value = 3;
     int plain_text[16] = {
-        0xca, 0xfd, 0x23, 0x1a, 0x20, 0x4d, 0x38, 0x17, 0x46, 0xd3, 0xf4, 0x1f, 0x86, 0x55, 0xbb, 0x76
+        0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff
+        // 0xca, 0xfd, 0x23, 0x1a, 0x20, 0x4d, 0x38, 0x17, 0x46, 0xd3, 0xf4, 0x1f, 0x86, 0x55, 0xbb, 0x76
     };
     int crypt_key[16] = {
-        0xb7, 0xc7, 0x2c, 0xed, 0x43, 0x9d, 0x44, 0x88, 0xc2, 0x56, 0x74, 0xb9, 0xce, 0x54, 0xab, 0xc0
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
+        // 0xb7, 0xc7, 0x2c, 0xed, 0x43, 0x9d, 0x44, 0x88, 0xc2, 0x56, 0x74, 0xb9, 0xce, 0x54, 0xab, 0xc0
     };
     int result_text[16] = {0};
-    int output_text[16] = {0};
+    for (int i = 0; i < 16; i++)
+        result_text[i] = plain_text[i];
 
     // function call
     printf("hello aes\n");
-    AddRoundKey(result_text, plain_text, crypt_key);
-    for (int i = 0; i < 16; i++) {
-        output_text[i] = result_text[i];
-    }
+    AddRoundKey(result_text, crypt_key);
     printf("\n");
-    for (int i = 0; i < round_value; i++) {
-        InvSubBytes(result_text, output_text);
-        InvShiftRows(output_text, result_text);
-        InvMixColumns(result_text, output_text);
-        AddRoundKey(output_text, result_text, crypt_key);
+    for (int i = 0; i < round_value-1; i++) {
+        printf("round : %d\n", i);
+        printf("start : ");
+        for (int i = 0; i < 16; i++)
+            printf("%x ", result_text[i]);
+        printf("\n");
+        InvSubBytes(result_text);
+        printf("s_box : ");
+        for (int i = 0; i < 16; i++)
+            printf("%x ", result_text[i]);
+        printf("\n");
+        InvShiftRows(result_text);
+        printf("s_row : ");
+        for (int i = 0; i < 16; i++)
+            printf("%x ", result_text[i]);
+        printf("\n");
+        InvMixColumns(result_text);
+        printf("m_col : ");
+        for (int i = 0; i < 16; i++)
+            printf("%x ", result_text[i]);
+        printf("\n");
+        AddRoundKey(result_text, crypt_key);
+        printf("k_sch : ");
+        for (int i = 0; i < 16; i++)
+            printf("%x ", result_text[i]);
+        printf("\n\n\n");
     }
-    InvSubBytes(result_text, output_text);
-    InvShiftRows(output_text, result_text);
-    AddRoundKey(result_text, output_text, crypt_key);
+    InvSubBytes(result_text);
+    InvShiftRows(result_text);
+    AddRoundKey(result_text, crypt_key);
 
     // show the result
     printf("input value : ");
@@ -44,77 +65,131 @@ int main(char argc, char** argv)
     printf("\n");
     printf("result value: ");
     for (int i = 0; i < 16; i++) {
-        printf("%x ", output_text[i]);
+        printf("%x ", result_text[i]);
     }
     printf("\nend\n");
 
     return 0;
 }
 
-void AddRoundKey(int* result, int* text, int* key)
+void AddRoundKey(int* result, int* key)
 {
+    int buffer[16] = {0};
+    for (int i = 0; i < 16; i++)
+        buffer[i] = result[i];
+    // for (int i = 0; i < 16; i++)
+    //     printf("%x ", buffer[i]);
+    // printf("\n");
+    // for (int i = 0; i < 16; i++)
+    //     printf("%x ", key[i]);
+    // printf("\n");
     for (int i = 0; i < 16; i++) {
-        result[i] = text[i] ^ key[i];
+        result[i] = buffer[i] ^ key[i];
     }
 }
 
-void InvMixColumns(int* result, int* text)
-
+void InvMixColumns(int* result)
 {
-    result[0] = text[0] << 1;
-    result[1] = (text[1] << 1) + text[1];
-    result[2] = text[2];
-    result[3] = text[3];
-    result[4] = text[4];
-    result[5] = text[5] << 1;
-    result[6] = (text[6] << 1) + text[6];
-    result[7] = text[7];
-    result[8] = text[8];
-    result[9] = text[9];
-    result[10] = text[10] << 1;
-    result[11] = text[11] << 1;
-    result[12] = (text[12] << 1) + text[12];
-    result[13] = text[13];
-    result[14] = text[14];
-    result[15] = (text[15] << 1) + text[15];
+    int buffer[16] = {0};
+    for (int i = 0; i < 16; i++)
+        buffer[i] = result[i];
+    // result[0]  =  buffer[0] << 1;
+    // result[1]  = (buffer[1] << 1) + buffer[1];
+    // result[2]  =  buffer[2];
+    // result[3]  =  buffer[3];
+    // result[4]  =  buffer[4];
+    // result[5]  =  buffer[5] << 1;
+    // result[6]  = (buffer[6] << 1) + buffer[6];
+    // result[7]  =  buffer[7];
+    // result[8]  =  buffer[8];
+    // result[9]  =  buffer[9];
+    // result[10] =  buffer[10] << 1;
+    // result[11] =  buffer[11] << 1;
+    // result[12] = (buffer[12] << 1) + buffer[12];
+    // result[13] =  buffer[13];
+    // result[14] =  buffer[14];
+    // result[15] = (buffer[15] << 1) + buffer[15];
+
+    // result[0]  =  buffer[0] << 1 ^ buffer[1] ^ buffer[2] ^ (buffer[3] << 1) + buffer[3];
+    result[0]  =  buffer[0] << 1 ^ (buffer[1] << 1) + buffer[1] ^ buffer[2] ^ buffer[3];
+    // result[0]  =  2*buffer[0] + 3*buffer[1] + buffer[2] + buffer[1];
+    // result[0]  =  2*buffer[0] + buffer[1] + buffer[2] + 3*buffer[3];
+    // result[0]  =  2*buffer[0] ^ buffer[1] ^ buffer[2] ^ 3*buffer[3];
+    result[1]  =  buffer[0] ^ buffer[1] << 1 ^ (buffer[2] << 1) ^ buffer[2] ^ buffer[3];
+    result[2]  =  buffer[2];
+    result[3]  = (buffer[3] << 1) + buffer[3];
+
+    result[4]  = (buffer[4] << 1) + buffer[4];
+    result[5]  =  buffer[5] << 1;
+    result[6]  =  buffer[6];
+    result[7]  =  buffer[7];
+
+    result[8]  =  buffer[8];
+    result[9]  = (buffer[9] << 1) + buffer[9];
+    result[10] =  buffer[10] << 1;
+    result[11] =  buffer[11];
+
+    result[12] =  buffer[12];
+    result[13] =  buffer[13];
+    result[14] = (buffer[14] << 1) + buffer[14];
+    result[15] =  buffer[15] << 1;
     for (int i = 0; i < 16; i++) {
-        if (result[i] > 16) {
+        if (result[i] > 255) {
             result[i] = result[i] & 0xff;
-            result[i] = (result[i] & 0x08) + (result[i] & 0x04) + (result[i] & 0x01);
+            // result[i] = (result[i] & 0x10) + (result[i] & 0x08) + (result[i] & 0x02) + (result[i] & 0x01);
         }
     }
 }
 
-void InvShiftRows(int* result, int* text)
+void InvShiftRows(int* result)
 {
-    // first row shifting...
-    for (int i = 0; i < 4; i++)
-        result[i] = text[i];
-    // second row shifting...
-    result[7] = text[4];
-    for (int i = 0; i < 3; i++)
-        result[4+i] = text[5+i];
-    // therad row shifting...
-    result[8]  = text[10];
-    result[9]  = text[11];
-    result[10] = text[8];
-    result[11] = text[9];
-    // fours row shifting...
-    for (int i = 0; i < 3; i++)
-        result[12+i] = text[13+i];
-    result[15] = text[12];
+    int buffer[16] = {0};
+    for (int i = 0; i < 16; i++)
+        buffer[i] = result[i];
+    // // first row shifting...
+    // for (int i = 0; i < 4; i++)
+    //     result[i] = buffer[i];
+    // // second row shifting...
+    // result[5] = buffer[4];
+    // for (int i = 0; i < 3; i++)
+    //     result[4+i] = buffer[5+i];
+    // // therad row shifting...
+    // result[8]  = buffer[10];
+    // result[9]  = buffer[11];
+    // result[10] = buffer[8];
+    // result[11] = buffer[9];
+    // // fours row shifting...
+    // for (int i = 0; i < 3; i++)
+    //     result[12+i] = buffer[13+i];
+    // result[15] = buffer[12];
+    result[0]  = buffer[0];
+    result[1]  = buffer[5];
+    result[2]  = buffer[10];
+    result[3]  = buffer[15];
+    result[4]  = buffer[4];
+    result[5]  = buffer[9];
+    result[6]  = buffer[14];
+    result[7]  = buffer[3];
+    result[8]  = buffer[8];
+    result[9]  = buffer[13];
+    result[10] = buffer[2];
+    result[11] = buffer[7];
+    result[12] = buffer[12];
+    result[13] = buffer[1];
+    result[14] = buffer[6];
+    result[15] = buffer[11];
 }
 
-void InvSubBytes(int* result, int* text)
+void InvSubBytes(int* result)
 {
     int sbox_matrix[16][16] = {
-        {0x63, 0x7e, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76},
+        {0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76},
         {0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0},
         {0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15},
         {0x04, 0xc7, 0x23, 0xc3, 0x18, 0x96, 0x05, 0x9a, 0x07, 0x12, 0x80, 0xe2, 0xeb, 0x27, 0xb2, 0x75},
         {0x09, 0x83, 0x2c, 0x1a, 0x1b, 0x6e, 0x5a, 0xa0, 0x52, 0x3b, 0xd6, 0xb3, 0x29, 0xe3, 0x2f, 0x84},
         {0x53, 0xd1, 0x00, 0xed, 0x20, 0xfc, 0xb1, 0x5b, 0x6a, 0xcb, 0xbe, 0x39, 0x4a, 0x4c, 0x58, 0xcf},
-        {0xd0, 0xdf, 0xaa, 0xfb, 0x43, 0x4d, 0x33, 0x85, 0x45, 0xf9, 0x02, 0x7f, 0x50, 0x3c, 0x9f, 0xa8},
+        {0xd0, 0xef, 0xaa, 0xfb, 0x43, 0x4d, 0x33, 0x85, 0x45, 0xf9, 0x02, 0x7f, 0x50, 0x3c, 0x9f, 0xa8},
         {0x51, 0xa3, 0x40, 0x8f, 0x92, 0x9d, 0x38, 0xf5, 0xbc, 0xb6, 0xda, 0x21, 0x10, 0xff, 0xf3, 0xd2},
         {0xcd, 0x0c, 0x13, 0xec, 0x5f, 0x97, 0x44, 0x17, 0xc4, 0xa7, 0x7e, 0x3d, 0x64, 0x5d, 0x19, 0x73},
         {0x60, 0x81, 0x4f, 0xdc, 0x22, 0x2a, 0x90, 0x88, 0x46, 0xee, 0xb8, 0x14, 0xde, 0x5e, 0x0b, 0xdb},
@@ -125,9 +200,13 @@ void InvSubBytes(int* result, int* text)
         {0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf},
         {0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16}
     };
+
+    int buffer[16] = {0};
+    for (int i = 0; i < 16; i++)
+        buffer[i] = result[i];
     for (int i = 0; i < 16; i++) {
-        int row_index = text[i] & 0x0f;
-        int coloum_index = text[i] >> 4;
-        result[i] = sbox_matrix[row_index][coloum_index];
+        int row_index = buffer[i] & 0x0f;
+        int column_index = buffer[i] >> 4;
+        result[i] = sbox_matrix[column_index][row_index];
     }
 }
