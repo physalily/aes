@@ -12,11 +12,9 @@ int main(char argc, char** argv)
     int round_value = 3;
     int plain_text[16] = {
         0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff
-        // 0xca, 0xfd, 0x23, 0x1a, 0x20, 0x4d, 0x38, 0x17, 0x46, 0xd3, 0xf4, 0x1f, 0x86, 0x55, 0xbb, 0x76
     };
     int crypt_key[16] = {
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
-        // 0xb7, 0xc7, 0x2c, 0xed, 0x43, 0x9d, 0x44, 0x88, 0xc2, 0x56, 0x74, 0xb9, 0xce, 0x54, 0xab, 0xc0
     };
     int result_text[16] = {0};
     for (int i = 0; i < 16; i++)
@@ -74,69 +72,18 @@ int main(char argc, char** argv)
 
 void AddRoundKey(int* result, int* key)
 {
-    int buffer[16] = {0};
     for (int i = 0; i < 16; i++)
-        buffer[i] = result[i];
-    // for (int i = 0; i < 16; i++)
-    //     printf("%x ", buffer[i]);
-    // printf("\n");
-    // for (int i = 0; i < 16; i++)
-    //     printf("%x ", key[i]);
-    // printf("\n");
-    for (int i = 0; i < 16; i++) {
-        result[i] = buffer[i] ^ key[i];
-    }
+        result[i] = result[i] ^ key[i];
 }
 
 void InvMixColumns(int* result)
 {
     int buffer[16] = {0};
-    for (int i = 0; i < 16; i++)
-        buffer[i] = result[i];
-    // result[0]  =  buffer[0] << 1;
-    // result[1]  = (buffer[1] << 1) + buffer[1];
-    // result[2]  =  buffer[2];
-    // result[3]  =  buffer[3];
-    // result[4]  =  buffer[4];
-    // result[5]  =  buffer[5] << 1;
-    // result[6]  = (buffer[6] << 1) + buffer[6];
-    // result[7]  =  buffer[7];
-    // result[8]  =  buffer[8];
-    // result[9]  =  buffer[9];
-    // result[10] =  buffer[10] << 1;
-    // result[11] =  buffer[11] << 1;
-    // result[12] = (buffer[12] << 1) + buffer[12];
-    // result[13] =  buffer[13];
-    // result[14] =  buffer[14];
-    // result[15] = (buffer[15] << 1) + buffer[15];
-
-    // result[0]  =  buffer[0] << 1 ^ buffer[1] ^ buffer[2] ^ (buffer[3] << 1) + buffer[3];
-    result[0]  =  buffer[0] << 1 ^ (buffer[1] << 1) + buffer[1] ^ buffer[2] ^ buffer[3];
-    // result[0]  =  2*buffer[0] + 3*buffer[1] + buffer[2] + buffer[1];
-    // result[0]  =  2*buffer[0] + buffer[1] + buffer[2] + 3*buffer[3];
-    // result[0]  =  2*buffer[0] ^ buffer[1] ^ buffer[2] ^ 3*buffer[3];
-    result[1]  =  buffer[0] ^ buffer[1] << 1 ^ (buffer[2] << 1) ^ buffer[2] ^ buffer[3];
-    result[2]  =  buffer[2];
-    result[3]  = (buffer[3] << 1) + buffer[3];
-
-    result[4]  = (buffer[4] << 1) + buffer[4];
-    result[5]  =  buffer[5] << 1;
-    result[6]  =  buffer[6];
-    result[7]  =  buffer[7];
-
-    result[8]  =  buffer[8];
-    result[9]  = (buffer[9] << 1) + buffer[9];
-    result[10] =  buffer[10] << 1;
-    result[11] =  buffer[11];
-
-    result[12] =  buffer[12];
-    result[13] =  buffer[13];
-    result[14] = (buffer[14] << 1) + buffer[14];
-    result[15] =  buffer[15] << 1;
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 1; i++) {
         if (result[i] > 255) {
+            printf("over flow\n");
             result[i] = result[i] & 0xff;
-            // result[i] = (result[i] & 0x10) + (result[i] & 0x08) + (result[i] & 0x02) + (result[i] & 0x01);
+            result[i] = (result[i] & 0x10) ^ (result[i] & 0x08) ^ (result[i] & 0x02) ^ (result[i] & 0x01);
         }
     }
 }
@@ -146,22 +93,6 @@ void InvShiftRows(int* result)
     int buffer[16] = {0};
     for (int i = 0; i < 16; i++)
         buffer[i] = result[i];
-    // // first row shifting...
-    // for (int i = 0; i < 4; i++)
-    //     result[i] = buffer[i];
-    // // second row shifting...
-    // result[5] = buffer[4];
-    // for (int i = 0; i < 3; i++)
-    //     result[4+i] = buffer[5+i];
-    // // therad row shifting...
-    // result[8]  = buffer[10];
-    // result[9]  = buffer[11];
-    // result[10] = buffer[8];
-    // result[11] = buffer[9];
-    // // fours row shifting...
-    // for (int i = 0; i < 3; i++)
-    //     result[12+i] = buffer[13+i];
-    // result[15] = buffer[12];
     result[0]  = buffer[0];
     result[1]  = buffer[5];
     result[2]  = buffer[10];
@@ -200,13 +131,9 @@ void InvSubBytes(int* result)
         {0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf},
         {0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16}
     };
-
-    int buffer[16] = {0};
-    for (int i = 0; i < 16; i++)
-        buffer[i] = result[i];
     for (int i = 0; i < 16; i++) {
-        int row_index = buffer[i] & 0x0f;
-        int column_index = buffer[i] >> 4;
+        int row_index = result[i] & 0x0f;
+        int column_index = result[i] >> 4;
         result[i] = sbox_matrix[column_index][row_index];
     }
 }
