@@ -1,22 +1,22 @@
 #include <stdio.h>
 
 // prototype declare
-void AddRoundKey(int*, int*);
-void InvMixColumns(int*);
-void InvShiftRows(int*);
-void InvSubBytes(int*);
+void AddRoundKey(unsigned int*, unsigned int*);
+void MixColumns(unsigned int*);
+void ShiftRows(unsigned int*);
+void SubBytes(unsigned int*);
 
-int main(char argc, char** argv)
+int main(int argc, char** argv)
 {
     // variables
     int round_value = 3;
-    int plain_text[16] = {
+    unsigned int plain_text[16] = {
         0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff
     };
-    int crypt_key[16] = {
+    unsigned int crypt_key[16] = {
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
     };
-    int result_text[16] = {0};
+    unsigned int result_text[16] = {0};
     for (int i = 0; i < 16; i++)
         result_text[i] = plain_text[i];
 
@@ -30,17 +30,17 @@ int main(char argc, char** argv)
         for (int i = 0; i < 16; i++)
             printf("%x ", result_text[i]);
         printf("\n");
-        InvSubBytes(result_text);
+        SubBytes(result_text);
         printf("s_box : ");
         for (int i = 0; i < 16; i++)
             printf("%x ", result_text[i]);
         printf("\n");
-        InvShiftRows(result_text);
+        ShiftRows(result_text);
         printf("s_row : ");
         for (int i = 0; i < 16; i++)
             printf("%x ", result_text[i]);
         printf("\n");
-        InvMixColumns(result_text);
+        MixColumns(result_text);
         printf("m_col : ");
         for (int i = 0; i < 16; i++)
             printf("%x ", result_text[i]);
@@ -51,8 +51,8 @@ int main(char argc, char** argv)
             printf("%x ", result_text[i]);
         printf("\n\n\n");
     }
-    InvSubBytes(result_text);
-    InvShiftRows(result_text);
+    SubBytes(result_text);
+    ShiftRows(result_text);
     AddRoundKey(result_text, crypt_key);
 
     // show the result
@@ -70,13 +70,13 @@ int main(char argc, char** argv)
     return 0;
 }
 
-void AddRoundKey(int* result, int* key)
+void AddRoundKey(unsigned int* result, unsigned int* key)
 {
     for (int i = 0; i < 16; i++)
         result[i] = result[i] ^ key[i];
 }
 
-void InvMixColumns(int* result)
+void MixColumns(unsigned int* result)
 {
     int buffer[16] = {0};
     for (int i = 0; i < 1; i++) {
@@ -88,7 +88,7 @@ void InvMixColumns(int* result)
     }
 }
 
-void InvShiftRows(int* result)
+void ShiftRows(unsigned int* result)
 {
     int buffer[16] = {0};
     for (int i = 0; i < 16; i++)
@@ -111,7 +111,7 @@ void InvShiftRows(int* result)
     result[15] = buffer[11];
 }
 
-void InvSubBytes(int* result)
+void SubBytes(unsigned int* result)
 {
     int sbox_matrix[16][16] = {
         {0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76},
@@ -132,8 +132,8 @@ void InvSubBytes(int* result)
         {0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16}
     };
     for (int i = 0; i < 16; i++) {
-        int row_index = result[i] & 0x0f;
-        int column_index = result[i] >> 4;
+        unsigned int row_index = result[i] & 0x0f;
+        unsigned int column_index = result[i] >> 4;
         result[i] = sbox_matrix[column_index][row_index];
     }
 }
