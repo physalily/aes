@@ -76,15 +76,21 @@ void AddRoundKey(unsigned int* result, unsigned int* key)
         result[i] = result[i] ^ key[i];
 }
 
-void MixColumns(unsigned int* result)
+void MixColumns(unsigned int* r)
 {
-    int buffer[16] = {0};
-    for (int i = 0; i < 1; i++) {
-        if (result[i] > 255) {
-            printf("over flow\n");
-            result[i] = result[i] & 0xff;
-            result[i] = (result[i] & 0x10) ^ (result[i] & 0x08) ^ (result[i] & 0x02) ^ (result[i] & 0x01);
+    int b[16] = {0};
+    for (int i = 0; i < 16; i+=4) {
+        b[i+0]  = r[i+0] << 1 ^ r[i+1] ^ r[i+1] << 1 ^ r[i+2] ^ r[i+3];
+        b[i+1]  = r[i+0] ^ r[i+1] << 1 ^ r[i+2] ^ r[i+2] << 1 ^ r[i+3];
+        b[i+2]  = r[i+0] ^ r[i+1] ^ r[i+2] << 1 ^ r[i+3] << 1 ^ r[i+3];
+        b[i+3]  = r[i+0] << 1 ^ r[i+0] ^ r[i+1] ^ r[i+2] ^ r[i+3] << 1;
+    }
+    for (int i = 0; i < 16; i++) {
+        if (b[i] > 255) {
+            b[i] = b[i] ^ 0x1b;
+            b[i] = b[i] & 0xff;
         }
+        r[i] = b[i];
     }
 }
 
