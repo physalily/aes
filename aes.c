@@ -6,7 +6,7 @@ void MixColumns(unsigned int*);
 void ShiftRows(unsigned int*);
 void SubBytes(unsigned int*);
 void KeyExtention(unsigned int*, int);
-void PrintData(unsigned int*, int);
+void PrintData(unsigned int*, int, char* name);
 
 int main(int argc, char** argv)
 {
@@ -26,59 +26,37 @@ int main(int argc, char** argv)
 
     // function call
     printf("\n");
-    printf("input : ");
-    for (int k = 0; k < 16; k++)
-        printf("%2x ", result_text[k]);
+    PrintData(result_text, 16, "input :");
+    PrintData(crypt_key, 16, "k_sch :");
     printf("\n");
-    printf("k_sch : ");
-    for (int k = 0; k < 16; k++)
-        printf("%2x ", crypt_key[k]);
-    printf("\n\n");
 
     AddRoundKey(result_text, crypt_key);
     KeyExtention(crypt_key, 0);
     for (int i = 0; i < round_value-1; i++) {
         printf("round : %d\n", i+1);
-        printf("start : ");
-        for (int k = 0; k < 16; k++)
-            printf("%2x ", result_text[k]);
-        printf("\n");
+        PrintData(result_text, 16, "start :");
         SubBytes(result_text);
-        printf("s_box : ");
-        for (int k = 0; k < 16; k++)
-            printf("%2x ", result_text[k]);
-        printf("\n");
+        PrintData(result_text, 16, "s_box :");
         ShiftRows(result_text);
-        printf("s_row : ");
-        for (int k = 0; k < 16; k++)
-            printf("%2x ", result_text[k]);
-        printf("\n");
+        PrintData(result_text, 16, "s_row :");
         MixColumns(result_text);
-        printf("m_col : ");
-        for (int k = 0; k < 16; k++)
-            printf("%2x ", result_text[k]);
-        printf("\n");
-        printf("k_sch : ");
-        for (int k = 0; k < 16; k++)
-            printf("%2x ", crypt_key[k]);
-        printf("\n\n\n");
+        PrintData(result_text, 16, "m_col :");
+        PrintData(result_text, 16, "k_sch :");
+        printf("\n\n");
         AddRoundKey(result_text, crypt_key);
         KeyExtention(crypt_key, i+1);
     }
+    PrintData(result_text, 16, "start :");
     SubBytes(result_text);
+    PrintData(result_text, 16, "s_box :");
     ShiftRows(result_text);
+    PrintData(result_text, 16, "s_row :");
     AddRoundKey(result_text, crypt_key);
 
     // show the result
-    printf("input value : ");
-    for (int i = 0; i < 16; i++) {
-        printf("%2x ", plain_text[i]);
-    }
     printf("\n");
-    printf("result value: ");
-    for (int i = 0; i < 16; i++) {
-        printf("%2x ", result_text[i]);
-    }
+    PrintData(plain_text, 16, "input value :");
+    PrintData(result_text, 16, "result value:");
     printf("\nend\n");
 
     return 0;
@@ -174,31 +152,15 @@ void KeyExtention(unsigned int* key, int round)
         {0x1b, 0x00, 0x00, 0x00},
         {0x36, 0x00, 0x00, 0x00}
     };
-    // buffer[ 3] = key[ 7];
-    // buffer[ 7] = key[11];
-    // buffer[11] = key[15];
-    // buffer[15] = key[ 3];
     buffer[12] = key[13];
     buffer[13] = key[14];
     buffer[14] = key[15];
     buffer[15] = key[12];
 
-    // printf("m_buf : ");
-    // for (int k = 0; k < 16; k++)
-    //     printf("%2x ", buffer[k]);
-    // printf("\n");
     SubBytes(buffer);
-    // printf("m_buf : ");
-    // for (int k = 0; k < 16; k++)
-    //     printf("%2x ", buffer[k]);
-    // printf("\n");
     for (int i = 0; i < 12; i++) {
         buffer[i] = key[i];
     }
-    printf("m_buf : ");
-    for (int k = 0; k < 16; k++)
-        printf("%2x ", key[k]);
-    printf("\n");
 
     for (int i = 0; i < 16; i++) {
         if (i < 4) {
@@ -206,37 +168,14 @@ void KeyExtention(unsigned int* key, int round)
         } else if (i < 12) {
             key[i] = key[i-4] ^ buffer[i];
         } else {
-            printf("%2x ^ %2x = ",key[i-4], key[i]);
             key[i] = key[i-4] ^ key[i];
-            printf("%2x\n", key[i]);
         }
     }
-    // buffer[12] = key[13];
-    // buffer[13] = key[14];
-    // buffer[14] = key[15];
-    // buffer[15] = key[12];
-    // SubBytes(buffer);
-    // for (int i = 0; i < 4; i++) {
-    //     key[i+12] = buffer[i+12];
-    // }
-    // printf("m_buf : ");
-    // for (int k = 0; k < 16; k++)
-    //     printf("%2x ", buffer[k]);
-    // printf("\n");
-    // key[12] = buffer[13];
-    // key[13] = buffer[14];
-    // key[14] = buffer[15];
-    // key[15] = buffer[16];
-
-    printf("m_key : ");
-
-    for (int k = 0; k < 16; k++)
-        printf("%2x ", key[k]);
-    printf("\n");
 }
 
-void PrintData(unsigned int* data, int length)
+void PrintData(unsigned int* data, int length, char* name)
 {
+    printf("%s ", name);
     for (int i = 0; i < length; i++)
         printf("%2x ", data[i]);
     printf("\n");
