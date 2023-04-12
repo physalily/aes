@@ -5,51 +5,65 @@ void AddRoundKey(unsigned int*, unsigned int*);
 void MixColumns(unsigned int*);
 void ShiftRows(unsigned int*);
 void SubBytes(unsigned int*);
+void KeyExtention(unsigned int*, int);
+void PrintData(unsigned int*, int);
 
 int main(int argc, char** argv)
 {
     // variables
-    int round_value = 3;
+    int round_value = 10;
     unsigned int plain_text[16] = {
-        0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff
+        // 0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff
+        0x32, 0x43, 0xf6, 0xa8, 0x88, 0x5a, 0x30, 0x8d, 0x31, 0x31, 0x98, 0xa2, 0xe0, 0x37, 0x07, 0x34
     };
     unsigned int crypt_key[16] = {
-        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
+        // 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
+        0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c
     };
     unsigned int result_text[16] = {0};
     for (int i = 0; i < 16; i++)
         result_text[i] = plain_text[i];
 
     // function call
-    printf("hello aes\n");
-    AddRoundKey(result_text, crypt_key);
     printf("\n");
+    printf("input : ");
+    for (int k = 0; k < 16; k++)
+        printf("%2x ", result_text[k]);
+    printf("\n");
+    printf("k_sch : ");
+    for (int k = 0; k < 16; k++)
+        printf("%2x ", crypt_key[k]);
+    printf("\n\n");
+
+    AddRoundKey(result_text, crypt_key);
+    KeyExtention(crypt_key, 0);
     for (int i = 0; i < round_value-1; i++) {
-        printf("round : %d\n", i);
+        printf("round : %d\n", i+1);
         printf("start : ");
-        for (int i = 0; i < 16; i++)
-            printf("%x ", result_text[i]);
+        for (int k = 0; k < 16; k++)
+            printf("%2x ", result_text[k]);
         printf("\n");
         SubBytes(result_text);
         printf("s_box : ");
-        for (int i = 0; i < 16; i++)
-            printf("%x ", result_text[i]);
+        for (int k = 0; k < 16; k++)
+            printf("%2x ", result_text[k]);
         printf("\n");
         ShiftRows(result_text);
         printf("s_row : ");
-        for (int i = 0; i < 16; i++)
-            printf("%x ", result_text[i]);
+        for (int k = 0; k < 16; k++)
+            printf("%2x ", result_text[k]);
         printf("\n");
         MixColumns(result_text);
         printf("m_col : ");
-        for (int i = 0; i < 16; i++)
-            printf("%x ", result_text[i]);
+        for (int k = 0; k < 16; k++)
+            printf("%2x ", result_text[k]);
         printf("\n");
-        AddRoundKey(result_text, crypt_key);
         printf("k_sch : ");
-        for (int i = 0; i < 16; i++)
-            printf("%x ", result_text[i]);
+        for (int k = 0; k < 16; k++)
+            printf("%2x ", crypt_key[k]);
         printf("\n\n\n");
+        AddRoundKey(result_text, crypt_key);
+        KeyExtention(crypt_key, i+1);
     }
     SubBytes(result_text);
     ShiftRows(result_text);
@@ -58,12 +72,12 @@ int main(int argc, char** argv)
     // show the result
     printf("input value : ");
     for (int i = 0; i < 16; i++) {
-        printf("%x ", plain_text[i]);
+        printf("%2x ", plain_text[i]);
     }
     printf("\n");
     printf("result value: ");
     for (int i = 0; i < 16; i++) {
-        printf("%x ", result_text[i]);
+        printf("%2x ", result_text[i]);
     }
     printf("\nend\n");
 
@@ -95,6 +109,7 @@ void MixColumns(unsigned int* r)
 }
 
 void ShiftRows(unsigned int* result)
+
 {
     int buffer[16] = {0};
     for (int i = 0; i < 16; i++)
@@ -142,4 +157,87 @@ void SubBytes(unsigned int* result)
         unsigned int column_index = result[i] >> 4;
         result[i] = sbox_matrix[column_index][row_index];
     }
+}
+
+void KeyExtention(unsigned int* key, int round)
+{
+    unsigned int buffer[16] = {0};
+    unsigned int Rcon[10][4] = {
+        {0x01, 0x00, 0x00, 0x00},
+        {0x02, 0x00, 0x00, 0x00},
+        {0x04, 0x00, 0x00, 0x00},
+        {0x08, 0x00, 0x00, 0x00},
+        {0x10, 0x00, 0x00, 0x00},
+        {0x20, 0x00, 0x00, 0x00},
+        {0x40, 0x00, 0x00, 0x00},
+        {0x80, 0x00, 0x00, 0x00},
+        {0x1b, 0x00, 0x00, 0x00},
+        {0x36, 0x00, 0x00, 0x00}
+    };
+    // buffer[ 3] = key[ 7];
+    // buffer[ 7] = key[11];
+    // buffer[11] = key[15];
+    // buffer[15] = key[ 3];
+    buffer[12] = key[13];
+    buffer[13] = key[14];
+    buffer[14] = key[15];
+    buffer[15] = key[12];
+
+    // printf("m_buf : ");
+    // for (int k = 0; k < 16; k++)
+    //     printf("%2x ", buffer[k]);
+    // printf("\n");
+    SubBytes(buffer);
+    // printf("m_buf : ");
+    // for (int k = 0; k < 16; k++)
+    //     printf("%2x ", buffer[k]);
+    // printf("\n");
+    for (int i = 0; i < 12; i++) {
+        buffer[i] = key[i];
+    }
+    printf("m_buf : ");
+    for (int k = 0; k < 16; k++)
+        printf("%2x ", key[k]);
+    printf("\n");
+
+    for (int i = 0; i < 16; i++) {
+        if (i < 4) {
+            key[i] = buffer[i] ^ buffer[i+12] ^ Rcon[round][i];
+        } else if (i < 12) {
+            key[i] = key[i-4] ^ buffer[i];
+        } else {
+            printf("%2x ^ %2x = ",key[i-4], key[i]);
+            key[i] = key[i-4] ^ key[i];
+            printf("%2x\n", key[i]);
+        }
+    }
+    // buffer[12] = key[13];
+    // buffer[13] = key[14];
+    // buffer[14] = key[15];
+    // buffer[15] = key[12];
+    // SubBytes(buffer);
+    // for (int i = 0; i < 4; i++) {
+    //     key[i+12] = buffer[i+12];
+    // }
+    // printf("m_buf : ");
+    // for (int k = 0; k < 16; k++)
+    //     printf("%2x ", buffer[k]);
+    // printf("\n");
+    // key[12] = buffer[13];
+    // key[13] = buffer[14];
+    // key[14] = buffer[15];
+    // key[15] = buffer[16];
+
+    printf("m_key : ");
+
+    for (int k = 0; k < 16; k++)
+        printf("%2x ", key[k]);
+    printf("\n");
+}
+
+void PrintData(unsigned int* data, int length)
+{
+    for (int i = 0; i < length; i++)
+        printf("%2x ", data[i]);
+    printf("\n");
 }
