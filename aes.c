@@ -72,18 +72,21 @@ void MixColumns(unsigned int* r)
 {
     int b[16] = {0};
     for (int i = 0; i < 16; i+=4) {
-        b[i+0]  = r[i+0] << 1 ^ r[i+1] ^ r[i+1] << 1 ^ r[i+2] ^ r[i+3];
-        b[i+1]  = r[i+0] ^ r[i+1] << 1 ^ r[i+2] ^ r[i+2] << 1 ^ r[i+3];
-        b[i+2]  = r[i+0] ^ r[i+1] ^ r[i+2] << 1 ^ r[i+3] << 1 ^ r[i+3];
-        b[i+3]  = r[i+0] << 1 ^ r[i+0] ^ r[i+1] ^ r[i+2] ^ r[i+3] << 1;
+        b[i+0] = (r[i+0] >> 7) ^ (r[i+1] >> 7) ?
+            (r[i+0] << 1 ^ r[i+1] ^ r[i+1] << 1 ^ r[i+2] ^ r[i+3] ^ 0x1b) & 0xff :
+             r[i+0] << 1 ^ r[i+1] ^ r[i+1] << 1 ^ r[i+2] ^ r[i+3];
+        b[i+1] = (r[i+1] >> 7) ^ (r[i+2] >> 7) ?
+            (r[i+0] ^ r[i+1] << 1 ^ r[i+2] ^ r[i+2] << 1 ^ r[i+3] ^ 0x1b) & 0xff :
+             r[i+0] ^ r[i+1] << 1 ^ r[i+2] ^ r[i+2] << 1 ^ r[i+3];
+        b[i+2] = (r[i+2] >> 7) ^ (r[i+3] >> 7) ?
+            (r[i+0] ^ r[i+1] ^ r[i+2] << 1 ^ r[i+3] << 1 ^ r[i+3] ^ 0x1b) & 0xff :
+             r[i+0] ^ r[i+1] ^ r[i+2] << 1 ^ r[i+3] << 1 ^ r[i+3];
+        b[i+3] = (r[i+0] >> 7) ^ (r[i+3] >> 7) ?
+            (r[i+0] << 1 ^ r[i+0] ^ r[i+1] ^ r[i+2] ^ r[i+3] << 1 ^ 0x1b) & 0xff :
+             r[i+0] << 1 ^ r[i+0] ^ r[i+1] ^ r[i+2] ^ r[i+3] << 1;
     }
-    for (int i = 0; i < 16; i++) {
-        if (b[i] > 255) {
-            b[i] = b[i] ^ 0x1b;
-            b[i] = b[i] & 0xff;
-        }
+    for (int i = 0; i < 16; i++)
         r[i] = b[i];
-    }
 }
 
 void ShiftRows(unsigned int* result)
